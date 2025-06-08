@@ -84,6 +84,7 @@ If this version is incompatible with your container runtime, please see the list
 | ubuntu24_cuda12.5.1-latest | | was `latest` up to `20250320` release |
 | ubuntu24_cuda12.6.3-latest | `latest` | `latest` as of `20250413` release |
 | ubuntu24_cuda12.8-latest | | needed for Blackwell (inc RTX 50xx) hardware (see "Blackwell support" section) |
+| ubuntu24_cuda12.9-latest | | |
 
 For more details on driver capabilities and how to update those, please see [Setting up NVIDIA docker & podman (Ubuntu 24.04)](https://www.gkr.one/blg-20240523-u24-nvidia-docker-podman).
 
@@ -122,28 +123,31 @@ It is recommended that a container monitoring tool be available to watch the log
   - [4.1. First run: Bottle image](#41-first-run-bottle-image)
   - [4.2. FLUX.1\[dev\] example](#42-flux1dev-example)
 - [5. FAQ](#5-faq)
-  - [5.1. Virtualenv](#51-virtualenv)
-    - [5.1.1. Multiple virtualenv](#511-multiple-virtualenv)
-    - [5.1.2. Fixing Failed Custom Nodes](#512-fixing-failed-custom-nodes)
-  - [5.2. postvenv\_script.bash](#52-postvenv_scriptbash)
-  - [5.3. user\_script.bash](#53-user_scriptbash)
-  - [5.4. /userscripts\_dir](#54-userscripts_dir)
-  - [5.5. /comfyui-nvidia\_config.sh](#55-comfyui-nvidia_configsh)
-  - [5.6. Available environment variables](#56-available-environment-variables)
-    - [5.6.1. WANTED\_UID and WANTED\_GID](#561-wanted_uid-and-wanted_gid)
-    - [5.6.2. COMFY\_CMDLINE\_BASE and COMFY\_CMDLINE\_EXTRA](#562-comfy_cmdline_base-and-comfy_cmdline_extra)
-    - [5.6.3. BASE\_DIRECTORY](#563-base_directory)
-    - [5.6.4. SECURITY\_LEVEL](#564-security_level)
-    - [5.6.5. FORCE\_CHOWN](#565-force_chown)
-  - [5.7. run/pip\_cache and run/tmp](#57-runpip_cache-and-runtmp)
-  - [5.8. ComfyUI Manager \& Security levels](#58-comfyui-manager--security-levels)
-  - [5.9. Shell within the Docker image](#59-shell-within-the-docker-image)
-    - [5.9.1. Alternate method](#591-alternate-method)
-  - [5.10. Additional FAQ](#510-additional-faq)
-    - [5.10.1. Windows: WSL2 and podman](#5101-windows-wsl2-and-podman)
-    - [5.10.2. Blackwell support](#5102-blackwell-support)
-      - [5.10.2.1. Blackwell support on Unraid](#51021-blackwell-support-on-unraid)
-    - [5.10.3. Specifying alternate folder location (ex: --output\_directory) with BASE\_DIRECTORY](#5103-specifying-alternate-folder-location-ex---output_directory-with-base_directory)
+  - [5.1. API nodes](#51-api-nodes)
+  - [5.2. Virtualenv](#52-virtualenv)
+    - [5.2.1. Multiple virtualenv](#521-multiple-virtualenv)
+    - [5.2.2. Fixing Failed Custom Nodes](#522-fixing-failed-custom-nodes)
+  - [5.3. postvenv\_script.bash](#53-postvenv_scriptbash)
+  - [5.4. user\_script.bash](#54-user_scriptbash)
+  - [5.5. /userscripts\_dir](#55-userscripts_dir)
+  - [5.6. /comfyui-nvidia\_config.sh](#56-comfyui-nvidia_configsh)
+  - [5.7. Available environment variables](#57-available-environment-variables)
+    - [5.7.1. WANTED\_UID and WANTED\_GID](#571-wanted_uid-and-wanted_gid)
+    - [5.7.2. COMFY\_CMDLINE\_BASE and COMFY\_CMDLINE\_EXTRA](#572-comfy_cmdline_base-and-comfy_cmdline_extra)
+    - [5.7.3. BASE\_DIRECTORY](#573-base_directory)
+    - [5.7.4. SECURITY\_LEVEL](#574-security_level)
+    - [5.7.5. USE\_SOCAT](#575-use_socat)
+    - [5.7.6. FORCE\_CHOWN](#576-force_chown)
+    - [5.7.7. USE\_PIPUPGRADE](#577-use_pipupgrade)
+  - [5.8. run/pip\_cache and run/tmp](#58-runpip_cache-and-runtmp)
+  - [5.9. ComfyUI Manager \& Security levels](#59-comfyui-manager--security-levels)
+  - [5.10. Shell within the Docker image](#510-shell-within-the-docker-image)
+    - [5.10.1. Alternate method](#5101-alternate-method)
+  - [5.11. Additional FAQ](#511-additional-faq)
+    - [5.11.1. Windows: WSL2 and podman](#5111-windows-wsl2-and-podman)
+    - [5.11.2. Blackwell support](#5112-blackwell-support)
+      - [5.11.2.1. Blackwell support on Unraid](#51121-blackwell-support-on-unraid)
+    - [5.11.3. Specifying alternate folder location (ex: --output\_directory) with BASE\_DIRECTORY](#5113-specifying-alternate-folder-location-ex---output_directory-with-base_directory)
 - [6. Troubleshooting](#6-troubleshooting)
   - [6.1. Virtual environment](#61-virtual-environment)
   - [6.2. run directory](#62-run-directory)
@@ -380,7 +384,15 @@ Template at [Flux example](https://comfyanonymous.github.io/ComfyUI_examples/flu
 
 # 5. FAQ
 
-## 5.1. Virtualenv
+## 5.1. API nodes
+
+"API Nodes are ComfyUI’s new way of calling closed-source models through API requests"
+https://docs.comfy.org/tutorials/api-nodes/overview
+
+**The container is not designed to be used with API nodes (even with API keys), only to run self-hosted models.**
+If you want to use those, it is recommended to use the Desktop version of ComfyUI from https://www.comfy.org/download
+
+## 5.2. Virtualenv
 
 The container pip installs all required packages in the container and then creates a virtual environment (in `/comfy/mnt/venv` with `comfy/mnt` mounted with the `docker run [...]—v`). 
 
@@ -389,7 +401,7 @@ This allows for the installation of Python packages using `pip3 install`.
 After running `docker exec -t comfy-nvidia /bin/bash` from the provided `bash`, activate the `venv` with `source /comfy/mnt/venv/bin/activate`.
 From this `bash` prompt, you can now run `pip3 freeze` or other `pip3` commands such as `pip3 install civitai`
 
-### 5.1.1. Multiple virtualenv
+### 5.2.1. Multiple virtualenv
 
 Because a `venv` is tied to an OS+CUDA version, the tool attempts to create some internal logic so that the `venv` folder matches the OS+CUDA of the started container.
 **Starting two `comfyui-nvidia-docker` containers with different OS+CUDA tags at the same time is likely to cause some issues**
@@ -403,7 +415,7 @@ For illustration, let's say we last ran `ubuntu22_cuda12.3.1`, exited the contai
 
 Because of this, it is possible to have multiple `venv`-based folders in the "run" folder.
 
-### 5.1.2. Fixing Failed Custom Nodes
+### 5.2.2. Fixing Failed Custom Nodes
 
 A side effect of the multiple virtual environment integration is that some installed custom nodes might have an `import failed` error when switching from one OS+CUDA version to another.
 When the container is initialized ,we run `cm-cli.py fix all` to attempt to fix this.
@@ -411,7 +423,7 @@ If this does not resolve the issue, start the `Manager -> Custom Nodes Manager`,
 
 ![Import Failed: Try Fix](./assets/ImportFailed-TryFix.png)
 
-## 5.2. postvenv_script.bash
+## 5.3. postvenv_script.bash
 
 The `run/postvenv_script.bash` script can perform additional operations directly after the virtual environment is created and before ComfyUI is installed (or updated).
 
@@ -419,7 +431,7 @@ This proves useful for installing Python packages that are required for the Comf
 
 Please see additional details about the use of user scripts in the `user_script.bash` section.
 
-## 5.3. user_script.bash
+## 5.4. user_script.bash
 
 The `run/user_script.bash` user script can perform additional operations. 
 Because this is a Docker container, updating the container will remove any additional installations not in the "run" directory, so it is possible to force a reinstall at runtime.
@@ -465,7 +477,7 @@ The script will be placed in the `run` directory and must be named `user_script.
 If you encounter an error, it is recommended to check the container logs; this script must be executable and readable by the `comfy` user.
 If the file is not executable, the tool will attempt to make it executable, but if another user owns it, the step will fail.
 
-## 5.4. /userscripts_dir
+## 5.5. /userscripts_dir
 
 **WARNING**: This directory is used to run independent user scripts to perform additional operations that might damage your installation. This was added at the request of users trying to install packages from source. **Use with caution**. No support will be provided for issues resulting from the use of this directory. In case of trouble, it is recommended to delete the `run` folder and start a new container.
 
@@ -492,7 +504,7 @@ FAQ:
 - The scripts will be run BEFORE the user script (`user_script.bash` if any). Those scripts should not start ComfyUI.
 - See the example scripts for details of what can be done.
 
-## 5.5. /comfyui-nvidia_config.sh
+## 5.6. /comfyui-nvidia_config.sh
 
 The `/comfyui-nvidia_config.sh` is a file that can be mounted within the container and can be used to load the entire configuration for the container, instead of setting environment variables on the command line.
 
@@ -505,9 +517,9 @@ docker run -it --runtime nvidia --gpus all v `pwd`/config.sh:/comfyui-nvidia_con
 
 Note: the file is loaded AFTER the environment variables set on the command line, so the config file will override any environment variables set on the command line.
 
-## 5.6. Available environment variables
+## 5.7. Available environment variables
 
-### 5.6.1. WANTED_UID and WANTED_GID
+### 5.7.1. WANTED_UID and WANTED_GID
 
 The `WANTED_UID` and `WANTED_GID` environment variables will be used to set the `comfy` user within the container.
 It is recommended that those be set to the end-user's `uid` and `gid` to allow the addition of files, models, and other content within the `run` directory.
@@ -517,7 +529,7 @@ The running user's `uid` and `gid` can be obtained using `id -u` and `id -g` in 
 
 **Note:** It is not recommended to override the default starting user of the script (`comfytoo`), as it is used to set up the `comfy` user to run with the provided `WANTED_UID` and `WANTED_GID`. The script checks for the `comfytoo` user to do so, then after restarting as the `comfy` user, the script checks that the `comfy` user has the correct `uid` and `gid` and will fail if it has not been able to set it up.
 
-### 5.6.2. COMFY_CMDLINE_BASE and COMFY_CMDLINE_EXTRA
+### 5.7.2. COMFY_CMDLINE_BASE and COMFY_CMDLINE_EXTRA
 
 You can add extra parameters by adding ComfyUI-compatible command-line arguments to the `COMFY_CMDLINE_EXTRA` environment variable.
 For example: `docker run [...] -e COMFY_CMDLINE_EXTRA="--fast --reserve-vram 2.0 --lowvram"`
@@ -551,7 +563,7 @@ exit 0
 
 Note that `pip install`ation of custom nodes is not possible in `normal` security level, and `weak` should be used instead (see the "Security levels" section for details)
 
-### 5.6.3. BASE_DIRECTORY
+### 5.7.3. BASE_DIRECTORY
 
 The `BASE_DIRECTORY` environment variable is used to specify the directory where ComfyUI will look for the `models`, `input`, `output`, `user` and `custom_nodes` folders. This is a good option to seprate the virtual environment and ComfyUI's code (in the `run` folder) from the end user's files (in the `basedir` folder). For Unraid in particular, you can use this to place the `basedir` on a separate volume, outside of the `appdata` folder.
 
@@ -563,15 +575,23 @@ This is to avoid having multiple copies of downloaded models (taking multiple GB
 **If your `models` directory is large, I recommend doing a manual `mv run/ComfyUI/models basedir/.` before running the container. The volumes are considered separate within the container, so the move operation within the container will 1) perform a file copy for each file within the folder (which will take a while) 2) double the model directory size before it is finished copying before it can delete the previous folder.**
 The same logic can be applied to the `input`, `output`, `user`, and `custom_nodes` folders.
 
-### 5.6.4. SECURITY_LEVEL
+### 5.7.4. SECURITY_LEVEL
 
 After the initial run, the `SECURITY_LEVEL` environment variable can be used to alter the default security level imposed by ComfyUI Manager.
 
 When following the rules defined at https://github.com/ltdrdata/ComfyUI-Manager?tab=readme-ov-file#security-policy the user should decide if `normal` will work for their use case. 
 You will prefer ' weak ' if you manually install or alter custom nodes.
-**WARNING: Using `normal-` will prevent access to the WebUI.**
+**WARNING: Using `normal-` will prevent access to the WebUI unless the USE_SOCAT environment variable is set to `true`.**
 
-### 5.6.5. FORCE_CHOWN
+### 5.7.5. USE_SOCAT
+
+The `USE_SOCAT` environment variable is used to enable an alternate service behavior: have ComfyUI listen on `127.0.0.1:8181` and use `socat` to expose the service on `0.0.0.0:8188`.
+
+The default is to run ComfyUI within the container to listen on `0.0.0.0:8188` (i.e., all network interfaces), which is needed to make it accessible on the exposed port outside of the running container.
+
+Some `SECURITY_LEVEL` settings might prevent access to the WebUI unless the tool is running on `127.0.0.1` (i.e., only the host). The `USE_SOCAT=true` environment variable can be used to support this behavior.
+
+### 5.7.6. FORCE_CHOWN
 
 The `FORCE_CHOWN` environment variable is used to force change directory ownership as the `comfy` user during script startup (this process might be slow).
 
@@ -581,7 +601,15 @@ This option was added to support users who mount the `run` and `basedir` folders
 
 When set, it will "force chown" every sub-folder in the `run` and `basedir` folders when it first attempt to access them before verifying they are owned by the proper user.
 
-## 5.7. run/pip_cache and run/tmp
+### 5.7.7. USE_PIPUPGRADE
+
+The `USE_PIPUPGRADE` environment variable is used to enable the use of `pip3 install --upgrade` to upgrade ComfyUI and other Python packages to the latest version during startup.
+
+This option is enabled by default as with the sepratation of the UI from the Core ComfyUI code, it is possible to be off-synced with the latest version of the UI.
+
+It can be disabled by setting `USE_PIPUPGRADE=false`.
+
+## 5.8. run/pip_cache and run/tmp
 
 If the `run/pip_cache` and `run/tmp` folders are present, they will be used as the cache folder for pip and the temporary directory for the comfy user. They should be created in the `run` folder before running the container starts with the user with the `WANTED_UID` and `WANTED_GID`.
 
@@ -595,7 +623,7 @@ This can be useful to avoid using the container's `writeable` layers, which migh
 
 Those are temporary folders, and can be deleted when the container is stopped.
 
-## 5.8. ComfyUI Manager & Security levels
+## 5.9. ComfyUI Manager & Security levels
 
 [ComfyUI Manager](https://github.com/ltdrdata/ComfyUI-Manager/) is installed and available in the container.
 
@@ -610,7 +638,7 @@ Note that if this is the first time starting the container, the file will not ye
 To use `cm-cli`, from the virtualenv, use: `python3 /comfy/mnt/custom_nodes/ComfyUI-Manager/cm-cli.py`.
 For example: `python3 /comfy/mnt/custom_nodes/ComfyUI-Manager/cm-cli.py show installed` (`COMFYUI_PATH=/ComfyUI` should be set)
 
-## 5.9. Shell within the Docker image
+## 5.10. Shell within the Docker image
 
 When starting a `docker exec -it comfyui-nvidia /bin/bash` (or getting a `bash` terminal from `docker compose`), you will be logged in as the `comfytoo` user.
 
@@ -630,7 +658,7 @@ to get the virtual environment activated (allowing you to perfom `pip3 install` 
 
 **Note:** as a reminder the `comfy` user is `sudo` capable, but `apt` commands might not persist a container restart, use the `user_script.bash` method to perform `apt` installs when the container is started.
 
-### 5.9.1. Alternate method
+### 5.10.1. Alternate method
 
 It is possible to pass a command line override to the container by adding it to the `docker run ... mmartial/comfyui-nvidia-docker:latest` command.
 
@@ -638,14 +666,14 @@ For example: `docker run ... -it ... mmartial/comfyui-nvidia-docker:latest /bin/
 
 This will start a container and drop you into a bash shell as the `comfy` user with all mounts and permissions set up.
 
-## 5.10. Additional FAQ
+## 5.11. Additional FAQ
 
 See [extras/FAQ.md] for additional FAQ topics, among which:
 - Updating ComfyUI
 - Updating ComfyUI-Manager
 - Installing a custom node from git
 
-### 5.10.1. Windows: WSL2 and podman
+### 5.11.1. Windows: WSL2 and podman
 
 **Note:** per https://github.com/mmartial/ComfyUI-Nvidia-Docker/issues/26, you must use `-v /usr/lib/wsl:/usr/lib/wsl -e LD_LIBRARY_PATH=/usr/lib/wsl/lib` to passthrough the nvidia drivers related to opengl.
 
@@ -717,7 +745,7 @@ Once started, go to http://127.0.0.1:8188 and enjoy your first workflow (the bot
 
 After using ComfyUI, `Ctrl+C` in the `podman` terminal will terminate the WebUI. Use the `podman run ...` command from the same folder in the Ubuntu terminal to restart it and use the same `run` and `basedir` as before.
 
-### 5.10.2. Blackwell support
+### 5.11.2. Blackwell support
 
 To use the Blackwell GPU (RTX 5080/5090), you will need to make sure to install NVIDIA driver 570 or above. This driver brings support for the RTX 50xx series of GPUs and CUDA 12.8. 
 
@@ -776,7 +804,7 @@ pytorch version: 2.7.0+cu128
 
 Additional details on this can be found in [this issue](https://github.com/mmartial/ComfyUI-Nvidia-Docker/issues/43).
 
-#### 5.10.2.1. Blackwell support on Unraid
+#### 5.11.2.1. Blackwell support on Unraid
 
 When using the `ubuntu24_cuda12.8-latest` image on Unraid, obtain a terminal from your Unraid WebUI and run the following commands:
 
@@ -788,7 +816,7 @@ chown 99:100 ./postvenv_script.bash
 
 Restart the container and it should install PyTorch 2.7.0 with CUDA 12.8 support.
 
-### 5.10.3. Specifying alternate folder location (ex: --output_directory) with BASE_DIRECTORY
+### 5.11.3. Specifying alternate folder location (ex: --output_directory) with BASE_DIRECTORY
 
 The `BASE_DIRECTORY` environment variable can be used to specify an alternate folder location for `input`, `output`, `temp`, `user`, `models` and `custom_nodes`.
 The ComfyUI CLI provides means to specify the location of some of those folders from the command line.
@@ -890,6 +918,7 @@ Once you are confident that you have migrated content from the old container's f
 
 # 7. Changelog
 
+- 20250607: Added `USE_PIPUPGRADE` and `USE_SOCAT` environment variables + added CUDA 12.9 build.
 - 20250503: Future proof [extras/PyTorch2.7-CUDA12.8.sh](./extras/PyTorch2.7-CUDA12.8.sh) to use `torch>=2.7` instead of `torch==2.7.0` + added `run/pip_cache` and `run/tmp` folders support
 - 20250426: Added support for `postvenv_script.bash` script (run after the virtual environment is set but before ComfyUI is installed/updated -- with a direct application to Blackwell GPUs to install PyTorch 2.7.0 with CUDA 12.8 support). See [extras/PyTorch2.7-CUDA12.8.sh](./extras/PyTorch2.7-CUDA12.8.sh) for details.
 - 20250424: No RTX50xx special case needed: PyTorch 2.7.0 is available for CUDA 12.8, only re-releasing this image
