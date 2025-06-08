@@ -5,7 +5,7 @@ DOCKER_CMD=docker
 DOCKER_PRE="NVIDIA_VISIBLE_DEVICES=all"
 DOCKER_BUILD_ARGS=
 
-COMFYUI_NVIDIA_DOCKER_VERSION=20250503
+COMFYUI_NVIDIA_DOCKER_VERSION=20250607
 
 COMFYUI_CONTAINER_NAME=comfyui-nvidia-docker
 
@@ -84,9 +84,9 @@ docker_rmi:
 # user the highest numbered entry
 #LATEST_ENTRY=$(shell echo ${DOCKER_ALL} | sed -e 's/ /\n/g' | tail -1)
 # use the previous to last entry as the candidate: 12.8 is for 50xx series GPUs, not making it the default yet)
-LATEST_ENTRY=$(shell echo ${DOCKER_ALL} | sed -e 's/ /\n/g' | tail -2 | head -1)
+#LATEST_ENTRY=$(shell echo ${DOCKER_ALL} | sed -e 's/ /\n/g' | tail -2 | head -1)
 # use the 2nd to last entry as the candidate
-#LATEST_ENTRY=$(shell echo ${DOCKER_ALL} | sed -e 's/ /\n/g' | tail -3 | head -1)
+LATEST_ENTRY=$(shell echo ${DOCKER_ALL} | sed -e 's/ /\n/g' | tail -3 | head -1)
 
 LATEST_CANDIDATE=$(shell echo ${COMFYUI_CONTAINER_NAME}:${LATEST_ENTRY})
 
