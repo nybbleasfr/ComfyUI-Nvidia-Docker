@@ -154,11 +154,12 @@ It is recommended that a container monitoring tool be available to watch the log
     - [5.7.4. run/pip\_cache and run/tmp](#574-runpip_cache-and-runtmp)
     - [5.7.5. Direct Cloud deployment: GPU Trader](#575-direct-cloud-deployment-gpu-trader)
 - [6. Troubleshooting](#6-troubleshooting)
-  - [6.1. Virtual environment](#61-virtual-environment)
-  - [6.2. run directory](#62-run-directory)
-  - [6.3. using BASE\_DIRECTORY with an outdated ComfyUI](#63-using-base_directory-with-an-outdated-comfyui)
-    - [6.3.1. using a specific ComfyUI version or SHA](#631-using-a-specific-comfyui-version-or-sha)
-    - [6.3.2. Errors with ComfyUI WebUI -- re-installation method with models migration](#632-errors-with-comfyui-webui----re-installation-method-with-models-migration)
+  - [6.1. Comfy crash](#61-comfy-crash)
+  - [6.2. Virtual environment](#62-virtual-environment)
+  - [6.3. run directory](#63-run-directory)
+  - [6.4. using BASE\_DIRECTORY with an outdated ComfyUI](#64-using-base_directory-with-an-outdated-comfyui)
+    - [6.4.1. using a specific ComfyUI version or SHA](#641-using-a-specific-comfyui-version-or-sha)
+    - [6.4.2. Errors with ComfyUI WebUI -- re-installation method with models migration](#642-errors-with-comfyui-webui----re-installation-method-with-models-migration)
 - [7. Changelog](#7-changelog)
 
 # 1. Preamble
@@ -875,18 +876,25 @@ If you are curious and want to learn more, check [this video](https://supercut.a
 
 # 6. Troubleshooting
 
-## 6.1. Virtual environment
+## 6.1. Comfy crash
+
+It is possible that despite the container starting and setting itself up correctly, ComfyUI will crash.
+You will recognize this in the Docker log as `!! ERROR: ComfyUI failed or exited with an error`.
+The log might contain the reason for the crash, but you can also look up the ComfyUI logs in the container to get more details. Those are in `basedir/user/*.log`.
+If Comfy crashes after it succesfully performs its internal checks (starts (`Starting server`) it is likely a Comfy/custom node error and not related to the container itself.
+
+## 6.2. Virtual environment
 
 The `venv` in the "run" directory contains all the Python packages the tool requires.
 In case of an issue, it is recommended that you terminate the container, delete (or rename) the `venv` directory, and restart the container. 
 The virtual environment will be recreated; any `custom_scripts` should re-install their requirements; please see the "Fixing Failed Custom Nodes" section for additional details.
 
-## 6.2. run directory
+## 6.3. run directory
 
 It is also possible to rename the entire "run" directory to get a clean installation of ComfyUI and its virtual environment. This method is preferred, compared to deleting the "run" directory—as it will allow us to copy the content of the various downloaded `ComfyUI/models`, `ComfyUI/custom_nodes`, generated `ComfyUI/outputs`, `ComfyUI/user`, added `ComfyUI/inputs`, and other folders present within the old "run" directory.
 If using the `BASE_DIRECTORY` environment variable, please note that some of that `run` directory content will be moved to the `BASE_DIRECTORY` specified.
 
-## 6.3. using BASE_DIRECTORY with an outdated ComfyUI
+## 6.4. using BASE_DIRECTORY with an outdated ComfyUI
 
 If using the `BASE_DIRECTORY` option and the program exit saying the `--base-directory` option does not exist, this is due to an outdated ComfyUI installation. A possible solution is to disable the option, restart the container and use the ComfyUI-Manager to update ComfyUI. Another option is manually update the code: `cd run/ComfyUI; git pull`
 In some case, it is easier to create a simple `user_script.bash` to perform those steps; particularly on Unraid.
@@ -905,7 +913,7 @@ Make sure to change file ownership to the user with the `WANTED_UID` and `WANTED
 
 **After the process complete, you should be presented with the WebUI. Make to delete or rename the script to avoid upgrading ComfyUI at start time, and use ComfyUI Manager instead.**
 
-### 6.3.1. using a specific ComfyUI version or SHA
+### 6.4.1. using a specific ComfyUI version or SHA
 
 Following the conversation in https://github.com/mmartial/ComfyUI-Nvidia-Docker/issues/32
 Use a `user_script.bash` to install a specific version of ComfyUI
@@ -930,7 +938,7 @@ Make sure to change file ownership to the user with the `WANTED_UID` and `WANTED
 
 **After the process complete, you should be presented with the WebUI. Make sure to delete or rename the script to avoid it being run again.**
 
-### 6.3.2. Errors with ComfyUI WebUI -- re-installation method with models migration
+### 6.4.2. Errors with ComfyUI WebUI -- re-installation method with models migration
 
 Sometimes a `custom_nodes` might cause the WebUI to fail to start, or error out with a message (ex: `Loading aborted due to error reloading workflow data`). In such cases, it is recommended to start from a brand new `run` and `basedir` folders, since `run` contains ComfyUI and the `venv` (virtual environment) that is required to run the WebUI, and `basedir` contains the `models` and `custom_nodes`. Because we would prefer to not have to redownload the models, the following describes a method to do so, such that you will be able to copy the content of the `models` folder from a `_old ``run` and `basedir` folders to the new ones.
 
