@@ -116,10 +116,13 @@ It is recommended that a container monitoring tool be available to watch the log
 
 - [1. Preamble](#1-preamble)
 - [2. Running the container](#2-running-the-container)
-  - [2.1. docker run](#21-docker-run)
-  - [2.2. podman](#22-podman)
-  - [2.3. Docker compose](#23-docker-compose)
-  - [2.4. First time use](#24-first-time-use)
+  - [2.1. Docker](#21-docker)
+    - [2.1.1. docker run](#211-docker-run)
+    - [2.1.2. docker compose up](#212-docker-compose-up)
+  - [2.2. Podman](#22-podman)
+    - [2.2.1. podman run](#221-podman-run)
+    - [2.2.2. podman compose up](#222-podman-compose-up)
+  - [2.3. First time use](#23-first-time-use)
 - [3. Docker image](#3-docker-image)
   - [3.1. Building the image](#31-building-the-image)
     - [3.1.1. Using the Makefile](#311-using-the-makefile)
@@ -234,7 +237,9 @@ When starting, the container image executes the `init.bash` script (existing as 
 
 If the `FORCE_CHOWN` environment variable is set to any non empty value (ex: "yes"), the script will force change directory ownership as the `comfy` user during script startup (might be slow).
 
-## 2.1. docker run
+## 2.1. Docker
+
+### 2.1.1. docker run
 
 To run the container on an NVIDIA GPU, mount the specified directory, expose only to `localhost` on port `8188` (remove `127.0.0.1` to expose to your subnet, and change the port by altering the `-p local:container` port mapping), pass the calling user's UID and GID to the container, provide a `BASE_DIRECTORY` and select the `SECURITY_LEVEL`:
 
@@ -243,17 +248,7 @@ mkdir run basedir
 docker run --rm -it --runtime nvidia --gpus all -v `pwd`/run:/comfy/mnt -v `pwd`/basedir:/basedir -e WANTED_UID=`id -u` -e WANTED_GID=`id -g` -e BASE_DIRECTORY=/basedir -e SECURITY_LEVEL=normal -p 127.0.0.1:8188:8188 --name comfyui-nvidia mmartial/comfyui-nvidia-docker:latest
 ```
 
-## 2.2. podman
-
-It is also possible to run the tool using `podman`. Before doing so, ensure the Container Device Interface (CDI) is properly set for your driver. Please see https://www.gkr.one/blg-20240523-u24-nvidia-docker-podman for instructions.
-To run the container on an NVIDIA GPU, mount the specified directory, expose only to `localhost` on port `8188` (remove `127.0.0.1` to expose to your subnet, and change the port by altering the `-p local:container` port mapping), pass the calling user's UID and GID to the container, provide a `BASE_DIRECTORY` and select the `SECURITY_LEVEL`:
-
-```bash
-mkdir run basedir
-podman run --rm -it --userns=keep-id --device nvidia.com/gpu=all -v `pwd`/run:/comfy/mnt -v `pwd`/basedir:/basedir -e WANTED_UID=`id -u` -e WANTED_GID=`id -g` -e BASE_DIRECTORY=/basedir -e SECURITY_LEVEL=normal -p 127.0.0.1:8188:8188 --name comfyui-nvidia docker.io/mmartial/comfyui-nvidia-docker:latest
-```
-
-## 2.3. Docker compose
+### 2.1.2. docker compose up
 
 In the directory where you want to run the compose stack, create the `compose.yaml` file with content similar to the [`compose.yaml`](compose.yaml) file in this repository.
 
@@ -265,7 +260,34 @@ Please see [docker compose up](https://docs.docker.com/reference/cli/docker/comp
 
 For users interested in adding it to a [Dockge](https://dockge.kuma.pet/) (a self-hosted Docker Compose stacks management tool ) stack,  please see my [Dockge blog post](https://www.gkr.one/blg-20240706-dockge) where we discuss directory and bind mounts (models take a lot of space).
 
-## 2.4. First time use
+## 2.2. Podman
+
+### 2.2.1. podman run
+
+It is also possible to run the tool using `podman`. Before doing so, ensure the Container Device Interface (CDI) is properly set for your driver. Please see https://www.gkr.one/blg-20240523-u24-nvidia-docker-podman for instructions.
+To run the container on an NVIDIA GPU, mount the specified directory, expose only to `localhost` on port `8188` (remove `127.0.0.1` to expose to your subnet, and change the port by altering the `-p local:container` port mapping), pass the calling user's UID and GID to the container, provide a `BASE_DIRECTORY` and select the `SECURITY_LEVEL`:
+
+```bash
+mkdir run basedir
+podman run --rm -it --userns=keep-id --device nvidia.com/gpu=all -v `pwd`/run:/comfy/mnt -v `pwd`/basedir:/basedir -e WANTED_UID=`id -u` -e WANTED_GID=`id -g` -e BASE_DIRECTORY=/basedir -e SECURITY_LEVEL=normal -p 127.0.0.1:8188:8188 --name comfyui-nvidia docker.io/mmartial/comfyui-nvidia-docker:latest
+```
+
+### 2.2.2. podman compose up
+
+To use `podman compose up`, modify from the `deploy:` section of the `compose.yaml` file the following:
+
+```yaml
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: cdi
+              device_ids: ['nvidia.com/gpu=all']
+              capabilities: [gpu]
+    userns_mode: "keep-id"
+```
+
+## 2.3. First time use
 
 The first time we run the container, we will go to our host's IP on port 8188 (likely `http://127.0.0.1:8188`) and see the latest run or the bottle-generating example.
 
