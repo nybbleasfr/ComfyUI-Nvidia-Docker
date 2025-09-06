@@ -157,7 +157,9 @@ It is recommended that a container monitoring tool be available to watch the log
   - [5.6. Shell within the Docker image](#56-shell-within-the-docker-image)
     - [5.6.1. Alternate method](#561-alternate-method)
   - [5.7. Misc](#57-misc)
-    - [5.7.1. Windows: WSL2 and podman](#571-windows-wsl2-and-podman)
+    - [5.7.1. Windows: WSL2](#571-windows-wsl2)
+      - [5.7.1.1. Docker Desktop](#5711-docker-desktop)
+      - [5.7.1.2. podman](#5712-podman)
     - [5.7.2. Blackwell support](#572-blackwell-support)
       - [5.7.2.1. PyTorch2.7-CUDA12.8.sh](#5721-pytorch27-cuda128sh)
     - [5.7.3. Specifying alternate folder location (ex: --output\_directory) with BASE\_DIRECTORY](#573-specifying-alternate-folder-location-ex---output_directory-with-base_directory)
@@ -688,21 +690,34 @@ See [extras/FAQ.md] for additional FAQ topics, among which:
 - Updating ComfyUI-Manager
 - Installing a custom node from git
 
-### 5.7.1. Windows: WSL2 and podman
+### 5.7.1. Windows: WSL2 
 
 **Note:** per https://github.com/mmartial/ComfyUI-Nvidia-Docker/issues/26, you must use `-v /usr/lib/wsl:/usr/lib/wsl -e LD_LIBRARY_PATH=/usr/lib/wsl/lib` to passthrough the nvidia drivers related to opengl.
 
-
 The container can be used on Windows using "Windows Subsystem for Linux 2" (WSL2). 
 For additional details on WSL, please read https://learn.microsoft.com/en-us/windows/wsl/about
-For additional details on podman, please read https://docs.podman.io/latest/getting_started/
 
 WSL2 is a Linux guest Virtual Machine on a Windows host (for a slightly longer understanding of what this means, please see the first section of https://www.gkr.one/blg-20240501-docker101).
 The started container is Linux based (Ubuntu Linux) that will perform a full installation of ComfyUI from sources.
 Some experience with the Linux and Python command line interface is relevant for any modifictions of the virtual environment of container post container start.
 
+#### 5.7.1.1. Docker Desktop
 
-In the following, we will describe the method to use the `podman` command line interface. For Docker Desktop users, please see https://docs.docker.com/desktop/features/gpu/ for details on how to enable GPU support with Docker.
+If you have Docker Desktop installed on your Windows machine, you can use it to run the container with GPU support enabled. 
+
+For additional details on Docker Desktop and WSL2, please read https://docs.docker.com/desktop/features/wsl/
+
+Please see https://docs.docker.com/desktop/features/gpu/ for details on how to enable GPU support with Docker.
+
+Once installation is complete, you can start the container with GPU support enabled by using the `docker run` and `docker compose up` commands as described in earlier sections of this document.
+
+#### 5.7.1.2. podman
+
+**Warning:** currently `podman compose` (`sudo apt install -y podman-compose`) does not appear to work on WSL2. If you have any suggestions, please us know in https://github.com/mmartial/ComfyUI-Nvidia-Docker/issues/73
+
+For additional details on podman, please read https://docs.podman.io/latest/getting_started/
+
+In the following, we will describe the method to use the `podman` command line interface. 
 
 First, follow the steps in Section 2 ("Getting Started with CUDA on WSL 2") of https://docs.nvidia.com/cuda/wsl-user-guide/index.html
 
