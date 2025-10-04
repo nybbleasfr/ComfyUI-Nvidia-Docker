@@ -19,9 +19,9 @@
   - including [Unraid](https://unraid.net) compatible images
 - open-source: build it yourself using the corresponding `Dockerfile` present in the directory of the same name and review the `init.bash` (i.e. the setup logic)
 
-<h2>Blackwell (RTX50xx) note</h2>
+<h2>GPU specific note</h2>
 
-When using RTX 50xx GPUs: 
+When using Blackwell (RTX50xx) GPUs: 
 - you must use NVIDIA driver 570 (or above).
 - use the `ubuntu24_cuda12.8` container tag (or above).
 
