@@ -1,6 +1,6 @@
 #!/bin/bash
 
-min_sageattention_version="2.1"
+min_sageattention_version="2.2.0"
 
 set -e
 
@@ -75,6 +75,6 @@ if [ -d $dd ]; then
 fi
 git clone https://github.com/thu-ml/SageAttention.git
 cd SageAttention
-python3 -s -m pip install . --no-build-isolation || error_exit "Failed to install SageAttention"
+EXT_PARALLEL=4 NVCC_APPEND_FLAGS="--threads 8" MAX_JOBS=32 python3 setup.py install || error_exit "Failed to install SageAttention"
 
 exit 0
