@@ -715,6 +715,8 @@ See [extras/FAQ.md] for additional FAQ topics, among which:
 
 **Note:** per https://github.com/mmartial/ComfyUI-Nvidia-Docker/issues/26, you must use `-v /usr/lib/wsl:/usr/lib/wsl -e LD_LIBRARY_PATH=/usr/lib/wsl/lib` to passthrough the nvidia drivers related to opengl.
 
+**Note:** per https://github.com/mmartial/ComfyUI-Nvidia-Docker/issues/82, "do not mount windows os directories for basedir, store them inside the WSL environment, and mount those to the docker". More details and links in the issue.
+
 The container can be used on Windows using "Windows Subsystem for Linux 2" (WSL2). 
 For additional details on WSL, please read https://learn.microsoft.com/en-us/windows/wsl/about
 
