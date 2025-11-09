@@ -127,6 +127,10 @@ docker_rmi_hub:
 	@echo ""; echo " ** Remaining images with the build label:"
 	@make docker_tag_list
 
+#####
+userscripts:
+	@tar --exclude="__off" -czf assets/userscripts_dir.tar.gz userscripts_dir 
+
 ##### Maintainer
 # - Create a new branch on GitHub that match the expected release tag, pull and checkout that branch
 # - In the Makefile, update the CCOMFYUI_NVIDIA_DOCKER_VERSION variable to match the final release tag
@@ -136,6 +140,8 @@ docker_rmi_hub:
 #   % make docker_tag
 # - Push the images (here too be ready to Ctrl+C before re-running)
 #   % make docker_push
+# - Update the userscripts archive
+#   % make userscripts
 # - Update the README.md file with the new release tag + version history
 # - Commit and push the changes to GitHub (in the branch created at the beginning)
 # - On Github, "Open a pull request",

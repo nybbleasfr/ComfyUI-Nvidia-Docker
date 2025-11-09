@@ -509,6 +509,14 @@ Scripts (which may not work --please feel free to contribute) provided to demons
 
 If a pip version is available, it is recommended to use it instead of the `/userscripts_dir`.
 
+An `tar.gz` archive of the `userscripts_dir` folder is available in the `assets` directory (at [assets/userscripts_dir.tar.gz](assets/userscripts_dir.tar.gz)) to avoid having to download the entire repository. 
+To use it, in the folder where your `compose.yaml` is located (or where you plan to create the `run` and `basedir` folders), extract the archive:
+
+```bash
+# Replace DONWLOAD_FOLDER with the path to the folder where you downloaded the archive`
+tar -xvf ~/DONWLOAD_FOLDER/userscripts_dir.tar.gz
+```
+
 The `/userscripts_dir` is a directory that can be mounted to the container: add it to your command line with `-v /path/to/userscripts_dir:/userscripts_dir`.
 
 ```bash
@@ -522,8 +530,8 @@ Each script differs, so it is recommended to read the comments at the beginining
 A few scripts are provided in the `userscripts_dir` folder:
 - [11-onnxruntime-gpu.sh](userscripts_dir/11-onnxruntime-gpu.sh)
 - [12-xformers.sh](userscripts_dir/12-xformers.sh)
-- [13-nunchaku.sh](userscripts_dir/13-nunchaku.sh)
-- [20-SageAttention.sh](userscripts_dir/20-SageAttention.sh)
+- [13-nunchaku.sh](userscripts_dir/13-nunchaku.sh), is required to allow the installation of the `nunchaku` custom node.
+- [20-SageAttention.sh](userscripts_dir/20-SageAttention.sh), to enable add `--use-sage-attention` to the `COMFY_CMDLINE_EXTRA` environment variable.
 - [30-PortAudio.sh](userscripts_dir/30-PortAudio.sh)
 - [90_Fix_libmvec-2_error.sh](userscripts_dir/90_Fix_libmvec-2_error.sh)
 
