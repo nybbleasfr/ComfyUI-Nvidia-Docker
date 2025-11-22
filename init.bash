@@ -183,7 +183,7 @@ load_env() {
 
 lc() { echo "$1" | tr '[:upper:]' '[:lower:]'; }
 FORCE_CHOWN=${FORCE_CHOWN:-"false"} # any value works, empty value or false means disabled
-FORCE_CHOWN=`lc "A${FORCE_CHOWN}"`
+FORCE_CHOWN=`lc "${FORCE_CHOWN}"`
 
 # comfytoo is a specfiic user not existing by default on ubuntu, we can check its whomai
 if [ "A${whoami}" == "Acomfytoo" ]; then 
@@ -240,7 +240,7 @@ fi
 
 # Default behavior: listen on 0.0.0.0
 USE_SOCAT=${USE_SOCAT:-"false"}
-USE_SOCAT=`lc "A${USE_SOCAT}"`
+USE_SOCAT=`lc "${USE_SOCAT}"`
 if [ "A${USE_SOCAT}" == "Atrue" ]; then
   LISTEN_ADDRESS="127.0.0.1"
   LISTEN_PORT="8181"
@@ -265,61 +265,6 @@ if [ -f $it ]; then COMFY_CMDLINE_EXTRA=$(cat $it); fi
 COMFY_CMDLINE_EXTRA=${COMFY_CMDLINE_EXTRA:-""}
 if [ ! -f $it ]; then write_worldtmpfile $it "$COMFY_CMDLINE_EXTRA"; fi
 echo "-- COMFY_CMDLINE_EXTRA: \"${COMFY_CMDLINE_EXTRA}\""
-
-
-DISABLE_UPGRADES=${DISABLE_UPGRADES:-"false"}
-DISABLE_UPGRADES=`lc "A${DISABLE_UPGRADES}"`
-if [ "A${DISABLE_UPGRADES}" == "Atrue" ]; then
-  echo "== Using alternate behavior: Disabling upgrade (including disabling USE_PIPUPGRADE)"
-  USE_PIPUPGRADE="false"
-else
-  echo "== Using default behavior: Enabling upgrades (behavior depends on USE_PIPUPGRADE)"
-fi
-
-## uv setup
-USE_UV=${USE_UV:-"false"}
-USE_UV=`lc "A${USE_UV}"`
-if [ "A${USE_UV}" == "Atrue" ]; then
-  echo "== Installing uv"
-  wget https://astral.sh/uv/install.sh -O /tmp/uv-installer.sh \
-    && sh /tmp/uv-installer.sh \
-    && rm /tmp/uv-installer.sh
-  export PATH="/home/comfy/.local/bin/:$PATH"
-  echo "  == Verify that python3 and uv are installed";
-  echo "  - python3: "; which python3
-  echo "    version: "; python3 --version
-  echo "  -      uv: "; which uv
-  echo "    version: "; uv --version
-fi
-
-USE_PIPUPGRADE=${USE_PIPUPGRADE:-"true"}
-USE_PIPUPGRADE=`lc "A${USE_PIPUPGRADE}"`
-DEFAULT_PIP3_CMD="pip3 install --trusted-host pypi.org --trusted-host files.pythonhosted.org"
-if [ "A${USE_PIPUPGRADE}" == "Atrue" ]; then
-  PIP3_CMD="${DEFAULT_PIP3_CMD} --upgrade"
-else
-  PIP3_CMD="${DEFAULT_PIP3_CMD}"
-fi
-echo "== PIP3_CMD: \"${PIP3_CMD}\""
-echo "== USE_UV: \"${USE_UV}\""
-
-# Define a wrapper function to handle USE_UV
-pip_install() {
-  if [ "A${USE_UV}" == "Atrue" ]; then
-    # Check if uv is actually installed
-    if command -v uv &> /dev/null; then
-      # uv pip install works inside the activated venv automatically
-      # We pass all arguments ($@) to uv
-      echo " [uv] Installing: $*"
-      uv ${PIP3_CMD} "$@"
-    else
-      echo "!! USE_UV=True but 'uv' not found. Falling back to pip3."
-      ${PIP3_CMD} "$@"
-    fi
-  else
-    ${PIP3_CMD} "$@"
-  fi
-}
 
 ########## ComfyUI specific section below
 
@@ -392,6 +337,52 @@ if [ -d "${it_dir}" ]; then
   it="${it_dir}/.testfile" && rm -f $it || error_exit "Failed to write to tmp directory as the comfy user"
   export TMPDIR=${COMFYUSER_DIR}/mnt/tmp
 fi
+
+##
+DISABLE_UPGRADES=${DISABLE_UPGRADES:-"false"}
+DISABLE_UPGRADES=`lc "${DISABLE_UPGRADES}"`
+if [ "A${DISABLE_UPGRADES}" == "Atrue" ]; then
+  echo "== Using alternate behavior: Disabling upgrade (including disabling USE_PIPUPGRADE)"
+  USE_PIPUPGRADE="false"
+else
+  echo "== Using default behavior: Enabling upgrades (behavior depends on USE_PIPUPGRADE)"
+fi
+
+PIP3_BASE="pip3"
+## uv setup
+USE_UV=${USE_UV:-"false"}
+USE_UV=`lc "${USE_UV}"`
+if [ "A${USE_UV}" == "Atrue" ]; then
+  echo "== Installing uv"
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  export PATH="/home/comfy/.local/bin/:$PATH"
+  echo "  == Verify that python3 and uv are installed";
+  echo -n "  - python3: "; which python3
+  echo -n "    version: "; python3 --version
+  echo -n "  -      uv: "; which uv
+  echo -n "    version: "; uv --version
+  PIP3_BASE="uv pip"
+
+  it_dir="${COMFYUSER_DIR}/mnt/uv_cache"
+  if [ ! -d "${it_dir}" ]; then
+    mkdir -p "${it_dir}"
+    dir_validate "${it_dir}"
+    it="${it_dir}/.testfile" && rm -f $it || error_exit "Failed to write to uv cache directory as the comfy user"
+  fi
+  echo ""; echo "== Setting the UV_CACHE_DIR variable to ${it_dir}"
+  export UV_CACHE_DIR="$it_dir"
+fi
+
+USE_PIPUPGRADE=${USE_PIPUPGRADE:-"true"}
+USE_PIPUPGRADE=`lc "${USE_PIPUPGRADE}"`
+DEFAULT_PIP3_CMD="${PIP3_BASE} install --trusted-host pypi.org --trusted-host files.pythonhosted.org"
+if [ "A${USE_PIPUPGRADE}" == "Atrue" ]; then
+  PIP3_CMD="${DEFAULT_PIP3_CMD} --upgrade"
+else
+  PIP3_CMD="${DEFAULT_PIP3_CMD}"
+fi
+echo "== PIP3_CMD: \"${PIP3_CMD}\""
+
 
 ##
 it_dir="${COMFYUSER_DIR}/mnt"
@@ -492,7 +483,7 @@ echo ""; echo "  == Activating virtualenv"
 source "$it" || error_exit "Virtualenv activation failed"
 if [ "A${DISABLE_UPGRADES}" != "Atrue" ]; then
   echo ""; echo "  == Upgrading pip"
-  pip_install pip || error_exit "Pip upgrade failed"
+  ${PIP3_CMD} pip || error_exit "Pip upgrade failed"
 fi
 
 # extent the PATH to include the user local bin directory
@@ -507,7 +498,6 @@ echo -n "  Pip version: "; pip3 --version
 echo -n "  python bin: "; which python3
 echo -n "  pip bin: "; which pip3
 echo -n "  git bin: "; which git
-if [ "$USE_UV" == "true" ]; then echo -n "  uv bin: "; which uv; fi
 echo "  PIP3_CMD: ${PIP3_CMD}"
 echo -n "  DISABLE_UPGRADES: "; echo ${DISABLE_UPGRADES}
 echo -n "  USE_PIPUPGRADE: "; echo ${USE_PIPUPGRADE}
@@ -584,7 +574,7 @@ else
       fi
     fi
     echo "Installing: ${it}"
-    pip_install ${it} || error_exit "Torch installation failed"
+    ${PIP3_CMD} ${it} || error_exit "Torch installation failed"
   fi
 fi
 
@@ -595,7 +585,7 @@ if [ "A${DISABLE_UPGRADES}" == "Atrue" ]; then
   echo "== ComfyUI requirements upgrade disabled by DISABLE_UPGRADES"
 else
   echo ""; echo "== Installing/Updating from ComfyUI's requirements"
-  pip_install -r $it || error_exit "ComfyUI requirements install/upgrade failed"
+  ${PIP3_CMD} -r $it || error_exit "ComfyUI requirements install/upgrade failed"
 fi
 
 # Install Huggingface Hub
@@ -603,7 +593,7 @@ if [ "A${DISABLE_UPGRADES}" == "Atrue" ]; then
   echo "== Huggingface Hub upgrade disabled by DISABLE_UPGRADES"
 else
   echo ""; echo "== Installing Huggingface Hub"
-  pip_install "huggingface_hub[cli]" || error_exit "HuggingFace Hub CLI install/upgrade failed"
+  ${PIP3_CMD} "huggingface_hub[cli]" || error_exit "HuggingFace Hub CLI install/upgrade failed"
 fi
 
 export COMFYUI_PATH=`pwd`
@@ -618,14 +608,14 @@ if [ ! -d ComfyUI-Manager ]; then
   echo "== Cloning ComfyUI-Manager (within ${customnodes_dir})"
   git clone https://github.com/ltdrdata/ComfyUI-Manager.git || error_exit "ComfyUI-Manager clone failed"
   echo "== Installing ComfyUI-Manager's requirements (from ${customnodes_dir}/ComfyUI-Manager/requirements.txt)"
-  pip_install -r ${customnodes_dir}/ComfyUI-Manager/requirements.txt || error_exit "ComfyUI-Manager CLI requirements installation failed" 
+  ${PIP3_CMD} -r ${customnodes_dir}/ComfyUI-Manager/requirements.txt || error_exit "ComfyUI-Manager CLI requirements installation failed" 
 fi
 if [ ! -d ComfyUI-Manager ]; then error_exit "ComfyUI-Manager not found"; fi
 if [ "A${DISABLE_UPGRADES}" == "Atrue" ]; then
   echo "== ComfyUI-Manager packages upgrade disabled by DISABLE_UPGRADES"
 else
   echo "== Installing/Updating ComfyUI-Manager's requirements (from ${customnodes_dir}/ComfyUI-Manager/requirements.txt)"
-  pip_install -r ${customnodes_dir}/ComfyUI-Manager/requirements.txt || error_exit "ComfyUI-Manager CLI requirements install/upgrade failed" 
+  ${PIP3_CMD} -r ${customnodes_dir}/ComfyUI-Manager/requirements.txt || error_exit "ComfyUI-Manager CLI requirements install/upgrade failed" 
 fi
 
 # Please see https://github.com/ltdrdata/ComfyUI-Manager?tab=readme-ov-file#security-policy for details on authorized values
@@ -640,12 +630,12 @@ if [ ! -f $cm_conf ]; then
 else
   echo "  -- Using ComfyUI-Manager config file: $cm_conf"
   # SECURITY_LEVEL
-  perl -p -i -e 's%security_level\s*=\s*\w+%security_level = '${SECURITY_LEVEL}'%g' $cm_conf
+  perl -p -i -e 's%^security_level\s*=.+$%security_level = '${SECURITY_LEVEL}'%g' $cm_conf
   echo -n "  -- ComfyUI-Manager (should show: ${SECURITY_LEVEL}): "
   grep security_level $cm_conf
   # USE_UV
   W_UV="False"; if [ "A${USE_UV}" == "Atrue" ]; then W_UV="True"; fi
-  perl -p -i -e 's%use_uv\s*=\s*\w+%use_uv = '${W_UV}'%g' $cm_conf
+  perl -p -i -e 's%^use_uv\s*=.+$%use_uv = '${W_UV}'%g' $cm_conf
   echo -n "  -- ComfyUI-Manager (should show: ${W_UV}): "
   grep use_uv $cm_conf
 fi

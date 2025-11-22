@@ -23,6 +23,7 @@ RUN apt-get update -y --fix-missing \
     python3-dev \
     unzip \
     wget \
+    curl \
     zip \
     zlib1g \
     zlib1g-dev \
