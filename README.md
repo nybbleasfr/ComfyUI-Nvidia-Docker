@@ -19,7 +19,7 @@
   - including [Unraid](https://unraid.net) compatible images
 - open-source: build it yourself using the corresponding `Dockerfile` present in the directory of the same name and review the `init.bash` (i.e. the setup logic)
 
-<h2>USE_UV</h2>
+<h2>USE_UV=true</h2>
 
 **Although `USE_UV` is not enabled by default, it is recommended to use `uv`** instead of `pip` for faster and more reliable installations. The logic to set the proper `UV_TORCH_BACKEND` is already implemented in the main script, so in general, users should not have to set `PREINSTALL_TORCH_CMD`.
 
@@ -35,7 +35,7 @@ When using GTX 10xx GPUs:
 - set `PREINSTALL_TORCH=true` to enable the automatic installation of a CUDA 12.6 version of PyTorch.
 - (recommended) set `USE_PIPUPGRADE=false` to disable the use of `pip3 --upgrade`.
 - (optional) **after the initial installation only**, set `DISABLE_UPGRADES=true` to disable any Python package upgrade when starting the container (also disables `USE_PIPUPGRADE`, and `PREINSTALL_TORCH` so set only after the initial installation). Use Comfy Manager to upgrade components.
-- (optional) set `PREINSTALL_TORCH_CMD="pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126"` to install torch with the `cu126` index-url.
+- (optional) set `PREINSTALL_TORCH_CMD=pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126` to install torch with the `cu126` index-url.
 
 **Note:** If you use a GTX 10xx GPU, please let me know if `USE_UV=true` works for you without using any of the _(optional)_ parameters.
 
