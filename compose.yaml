@@ -1,5 +1,9 @@
 services:
   comfyui-nvidia:
+    # Use your preferred image tag
+    # latest points to ubuntu24_cuda12.6.3-latest
+    # other tags are available, such as ubuntu24_cuda13.0-latest
+    # See README.md for more information
     image: mmartial/comfyui-nvidia-docker:latest
     container_name: comfyui-nvidia
     ports:
