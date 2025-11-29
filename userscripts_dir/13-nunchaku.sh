@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# Pre-requisites (run first):
+# - 00-nvidiaDev.sh
+
 # https://github.com/nunchaku-tech/nunchaku
 nunchaku_version="v1.0.2"
+
+# detects the compute capability of the GPUs present on the machine and compiles only for those SMs
+export NUNCHAKU_INSTALL_MODE=FAST
 
 set -e
 
@@ -20,13 +26,11 @@ uv="/comfy/mnt/venv/bin/uv"
 uv_cache="/comfy/mnt/uv_cache"
 if [ ! -x "$uv" ] || [ ! -d "$uv_cache" ]; then use_uv=false; fi
 
-## requires: 00-nvidiaDev,sh
 echo "Checking if nvcc is available"
 if ! command -v nvcc &> /dev/null; then
     error_exit " !! nvcc not found, canceling run"
 fi
 
-## requires: 10-pip3Dev.sh
 if pip3 show setuptools &>/dev/null; then
   echo " ++ setuptools installed"
 else

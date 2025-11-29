@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Pre-requisites (run first):
+# - 00-nvidiaDev.sh
+
 # ==============================================================================
 #           Fix simsimd ImportError for Ubuntu 24 Docker Containers
 # ==============================================================================

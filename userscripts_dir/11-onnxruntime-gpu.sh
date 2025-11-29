@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Pre-requisites (run first):
+# - 00-nvidiaDev.sh
+
 # Install onnxruntime-gpu from PyPI
 #
 # https://onnxruntime.ai/

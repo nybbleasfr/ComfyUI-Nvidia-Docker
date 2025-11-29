@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Pre-requisites (run first):
+# - 00-nvidiaDev.sh
+
 # ==============================================================================
 #           Install PortAudio & PyAudio for Ubuntu 24 Docker Containers
 # ==============================================================================
