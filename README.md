@@ -420,7 +420,7 @@ If you want to use those, it is recommended to use the Desktop version of ComfyU
 
 The container pip installs all required packages in the container and then creates a virtual environment (in `/comfy/mnt/venv` with `comfy/mnt` mounted with the `docker run [...]—v`). 
 
-This allows for the installation of Python packages using `pip3 install`. 
+This allows for the installation of Python packages using `pip3 install` or `uv pip install` (when `USE_UV` is enabled).
 
 After running `docker exec -t comfy-nvidia /bin/bash` from the provided `bash`, activate the `venv` with `source /comfy/mnt/venv/bin/activate`.
 From this `bash` prompt, you can now run `pip3 freeze` or other `pip3` commands such as `pip3 install civitai`
@@ -479,6 +479,7 @@ DEBIAN_FRONTEND=noninteractive sudo apt install -y nvtop
 echo "== Adding python package"
 source /comfy/mnt/venv/bin/activate
 pip3 install pipx
+#uv pip install pipx
 echo "== Adding nvitop"
 # nvitop will be installed in the user's .local/bin directory which will be removed when the container is updated
 pipx install nvitop
