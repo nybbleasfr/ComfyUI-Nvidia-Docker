@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Pre-requisites (run first):
+# - 00-nvidiaDev.sh
+
 # https://github.com/thu-ml/SageAttention
 sageattention_version="v2.2.0"
 
@@ -20,13 +23,11 @@ uv="/comfy/mnt/venv/bin/uv"
 uv_cache="/comfy/mnt/uv_cache"
 if [ ! -x "$uv" ] || [ ! -d "$uv_cache" ]; then use_uv=false; fi
 
-## requires: 00-nvidiaDev,sh
 echo "Checking if nvcc is available"
 if ! command -v nvcc &> /dev/null; then
     error_exit " !! nvcc not found, canceling run"
 fi
 
-## requires: 10-pip3Dev.sh
 if pip3 show setuptools &>/dev/null; then
   echo " ++ setuptools installed"
 else

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Pre-requisites (run first):
+# - 00-nvidiaDev.sh
+
 # Install xformers
 # 
 # https://github.com/facebookresearch/xformers
@@ -33,25 +36,19 @@ CUDA_VERSION=$(echo $BUILD_BASE | grep -oP 'cuda\d+\.\d+')
 if [ -z "$CUDA_VERSION" ]; then error_exit "CUDA version not found in build base"; fi
 
 echo "CUDA version: $CUDA_VERSION"
-url=""
-if [ "$CUDA_VERSION" == "cuda12.6" ]; then url="--index-url https://download.pytorch.org/whl/cu126"; fi
-if [ "$CUDA_VERSION" == "cuda12.8" ]; then url="--index-url https://download.pytorch.org/whl/cu128"; fi
-if [ "$CUDA_VERSION" == "cuda12.9" ]; then url="--index-url https://download.pytorch.org/whl/cu129"; fi
-
-if [ -z "$url" ]; then 
-  echo "CUDA version $CUDA_VERSION not supported, skipping xformers installation"
-  exit 0
-fi
-echo "Index URL: $url"
 
 if [ "A$use_uv" == "Atrue" ]; then
+  if [ -z "${UV_TORCH_BACKEND+x}" ]; then error_exit "UV_TORCH_BACKEND is not set"; fi
   echo "== Using uv"
   echo " - uv: $uv"
   echo " - uv_cache: $uv_cache"
-  uv pip install xformers $url || error_exit "Failed to uv install xformers"
+  echo " - UV_TORCH_BACKEND: $UV_TORCH_BACKEND"
+  uv pip install xformers || error_exit "Failed to uv install xformers"
 else
+  if [ -z "${TORCH_INDEX_URL+x}" ]; then error_exit "TORCH_INDEX_URL is not set"; fi
   echo "== Using pip"
-  pip3 install xformers $url || error_exit "Failed to install xformers"
+  echo " - TORCH_INDEX_URL: $TORCH_INDEX_URL"
+  pip3 install xformers --index-url $TORCH_INDEX_URL || error_exit "Failed to install xformers"
 fi
 
 exit 0
