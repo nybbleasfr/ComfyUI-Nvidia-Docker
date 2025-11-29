@@ -12,6 +12,7 @@ services:
 #    extra_hosts:
 #      - ollama.internal:10.12.13.14 # method to add extra hosts to the container for external services (useful for Ollama's node: use http://ollama.internal:11434)
     environment:
+      - USE_UV=true # Use "uv pip" instead of "pip" (Default: false)
       # set WANTED_UID and WANTED_GID to your user and group as obtained with `id -u` and `id -g`
       - WANTED_UID=1000
       - WANTED_GID=1000
@@ -26,7 +27,6 @@ services:
 #      - DISABLE_UPGRADES=false # Disable upgrades when starting the container (also disables USE_PIPUPGRADE) (Default: false)
 #      - PREINSTALL_TORCH=true # Automatically install/upgrade torch. (Default: true)
 #      - LD_LIBRARY_PATH=/usr/lib/wsl/lib # Required for Windows Subsystem for Linux 2
-      - USE_UV=true # Use "uv pip" instead of "pip" (Default: false)
 # Add extra environment variables if needed
 #      - HF_TOKEN=hf_... # set your huggingface token to avoid rate limiting
     deploy:
