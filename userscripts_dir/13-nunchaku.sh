@@ -3,6 +3,9 @@
 # https://github.com/nunchaku-tech/nunchaku
 nunchaku_version="v1.0.2"
 
+# detects the compute capability of the GPUs present on the machine and compiles only for those SMs
+export NUNCHAKU_INSTALL_MODE=FAST
+
 set -e
 
 error_exit() {
