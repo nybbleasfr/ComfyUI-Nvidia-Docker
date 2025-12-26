@@ -43,7 +43,7 @@ ${DOCKER_ALL}: ${DOCKERFILE_DIR}
 	else \
 	  echo "docker buildx use default || exit 1" > ${VAR_NT}.cmd; \
 	fi
-	@echo "BUILDX_EXPERIMENTAL=1 ${DOCKER_PRE} docker buildx debug --on=error build --progress plain --platform linux/amd64 ${DOCKER_BUILD_ARGS} \\" >> ${VAR_NT}.cmd
+	@echo "BUILDX_EXPERIMENTAL=1 ${DOCKER_PRE} docker buildx debug --on=error build --progress plain --platform linux/arm64 ${DOCKER_BUILD_ARGS} \\" >> ${VAR_NT}.cmd
 	@echo "  --build-arg COMFYUI_NVIDIA_DOCKER_VERSION=\"${COMFYUI_NVIDIA_DOCKER_VERSION}\" \\" >> ${VAR_NT}.cmd
 	@echo "  --build-arg BUILD_BASE=\"$@\" \\" >> ${VAR_NT}.cmd
 	@echo "  --tag=\"${COMFYUI_CONTAINER_NAME}:$@\" \\" >> ${VAR_NT}.cmd

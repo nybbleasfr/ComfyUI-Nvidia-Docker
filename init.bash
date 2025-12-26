@@ -557,6 +557,7 @@ ${PIP3_CMD} cmake || error_exit "Failed to install cmake"
 ${PIP3_CMD} wheel || error_exit "Failed to install wheel"
 ${PIP3_CMD} pybind11 || error_exit "Failed to install pybind11"
 ${PIP3_CMD} packaging || error_exit "Failed to install packaging"
+${PIP3_CMD} nvidia-ml-py || error_exit "Failed to install nvidia-ml-py"
 
 # Check for the post-venv script
 it=${COMFYUSER_DIR}/mnt/postvenv_script.bash
